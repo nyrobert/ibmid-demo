@@ -1,0 +1,12 @@
+{
+	"autoload": {
+		"psr-4": {
+			"App\\": "src/"
+		}
+	},
+	"require": {
+		"php": ">=5.6.0",
+		"slim/slim": "^3.0",
+		"vlucas/phpdotenv": "^2.3.0"
+	}
+}
