@@ -23,6 +23,11 @@ class Session
 		return null;
 	}
 
+	public function has($key)
+	{
+		return isset($_SESSION[$key]);
+	}
+
 	public function set($key, $value)
 	{
 		$_SESSION[$key] = $value;

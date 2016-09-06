@@ -1,5 +1,13 @@
 {% extends 'layout.html.twig' %}
 
 {% block content %}
-	<a href="{{ path_for('authorize') }}">Login with IBMid</a>
+	{% if error %}
+		 <p>
+			 <span style="color: red; font-weight: bold;">{{ error }}</span>
+		 </p>
+	{% endif %}
+
+	<p>
+		<a href="{{ path_for('authorize') }}">Login with IBMid</a>
+	</p>
 {% endblock %}

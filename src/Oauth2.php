@@ -2,6 +2,8 @@
 
 namespace App;
 
+use Psr\Http\Message\ServerRequestInterface as Request;
+
 class Oauth2
 {
 	/**
@@ -59,9 +61,31 @@ class Oauth2
 			'state'         => $this->session->get('state'),
 		];
 
-		$url = $this->endpointBaseUrl.'/authorize'.'?'.http_build_query($queryParams);
+		$url = $this->endpointBaseUrl.'/authorize?'.http_build_query($queryParams);
 
-		header('Location: '.$this->endpointBaseUrl.'/authorize');
+		header('Location: '.$url);
 		die();
+	}
+
+	public function callback(Request $request)
+	{
+		$queryParams = $request->getQueryParams();
+
+		if (isset($queryParams['code'])) {
+			if ($queryParams['state'] !== $this->session->get('state')) {
+				throw new Error($queryParams['state_not_match']);
+			}
+
+			$this->getToken($queryParams['code']);
+		} elseif (isset($queryParams['error'])) {
+			throw new Error($queryParams['error']);
+		} else {
+			throw new Error('unknown_error');
+		}
+	}
+
+	public function getToken($code)
+	{
+		
 	}
 }
