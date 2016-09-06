@@ -8,6 +8,10 @@
 	{% endif %}
 
 	<p>
-		<a href="{{ path_for('authorize') }}">Login with IBMid</a>
+		{% if user %}
+			{{ user }} logged in.
+		{% else %}
+			<a href="{{ path_for('authorize') }}">Login with IBMid</a>
+		{% endif %}
 	</p>
 {% endblock %}

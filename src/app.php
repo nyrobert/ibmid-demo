@@ -27,7 +27,7 @@ $container['view'] = function ($container) {
 };
 
 $app->get('/', function (Request $request, Response $response) {
-	return $this->view->render($response, 'index.html.twig');
+	return $this->view->render($response, 'index.html.twig', ['user' => (new Session())->get('user')]);
 });
 
 $app->get('/authorize', function () {

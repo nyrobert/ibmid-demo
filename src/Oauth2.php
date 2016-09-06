@@ -29,7 +29,7 @@ class Oauth2
 	/**
 	 * @var string
 	 */
-	private $redirectUrl = 'https://peaceful-wildwood-33778.herokuapp.com/callback';
+	private $redirectBaseUrl = 'https://peaceful-wildwood-33778.herokuapp.com';
 
 	public function __construct($endpointBaseUrl, $clientId, $clientSecret, $session)
 	{
@@ -54,10 +54,10 @@ class Oauth2
 		$this->session->set('state', md5(uniqid(mt_rand(), true)));
 
 		$queryParams = [
-			'client_id'     => $this->clientId,
-			'redirect_url'  => $this->redirectUrl,
-			'scope'         => 'openid',
 			'response_type' => 'code',
+			'client_id'     => $this->clientId,
+			'redirect_uri'  => $this->redirectBaseUrl.'/callback',
+			'scope'         => 'openid',
 			'state'         => $this->session->get('state'),
 		];
 
@@ -77,6 +77,11 @@ class Oauth2
 			}
 
 			$this->getToken($queryParams['code']);
+		} elseif (isset($queryParams['access_token']) && isset($queryParams['id_token'])) {
+			$this->session->reGenerateId();
+			$this->session->set('user', $queryParams['id_token']);
+
+			header('Location: '.$this->redirectBaseUrl);
 		} elseif (isset($queryParams['error'])) {
 			throw new Error($queryParams['error']);
 		} else {
@@ -86,6 +91,30 @@ class Oauth2
 
 	public function getToken($code)
 	{
-		
+		$headers = [
+			'Content-Type: application/x-www-form-urlencoded',
+			'Authorization: Basic '.base64_encode($this->clientId.':'.$this->clientSecret),
+		];
+
+		$data = [
+			'grant_type'   => 'authorization_code',
+			'code'         => $code,
+			'client_id'    => $this->clientId,
+			'redirect_uri' => $this->redirectBaseUrl.'/callback',
+			'scope'        => 'openid',
+		];
+
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $this->endpointBaseUrl.'/token');
+		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($curl, CURLOPT_POST, true);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+
+		$response = curl_exec($curl);
+
+		curl_close($curl);
 	}
 }
