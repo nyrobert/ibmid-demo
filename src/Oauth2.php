@@ -93,7 +93,8 @@ class Oauth2
 
 		if (isset($queryParams['code'])) {
 			if ($queryParams['state'] !== $this->session->get('state')) {
-				throw new Oauth2Error($queryParams['invalid_state']);
+				$this->session->remove('state');
+				throw new Oauth2Error('invalid_state');
 			}
 
 			$this->getToken($queryParams['code'], $response);
@@ -104,7 +105,7 @@ class Oauth2
 		}
 	}
 
-	public function getToken($code, Response $response)
+	private function getToken($code, Response $response)
 	{
 		$credentials = base64_encode($this->clientId . ':' . $this->clientSecret);
 
@@ -130,7 +131,7 @@ class Oauth2
 
 		if (isset($token['access_token']) && isset($token['id_token'])) {
 			$this->session->reGenerateId();
-			$this->session->set('user', $tokenResponse['id_token']);
+			$this->session->set('user', $token['id_token']);
 			$response->withRedirect(self::APP_URL);
 			exit();
 		} elseif (isset($token['error'])) {
