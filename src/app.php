@@ -2,7 +2,6 @@
 
 use App\Session;
 use App\Oauth2;
-use App\Oauth2Error;
 use Slim\App;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -50,5 +49,11 @@ $app->get('/callback', function (Request $request, Response $response) {
 		);
 	}
 });
+
+$app->get('/logout', function (Request $request, Response $response) use ($session) {
+	$session->destroy();
+	return $response->withRedirect(Oauth2::APP_URL);
+})->setName('logout');
+
 
 return $app;
