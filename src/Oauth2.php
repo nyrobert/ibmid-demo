@@ -51,7 +51,7 @@ class Oauth2
 
 	public function authorize()
 	{
-		$this->session->set('state', md5(uniqid(mt_rand(), true)));
+		$this->session->set('state', $this->generateState());
 
 		$queryParams = [
 			'response_type' => 'code',
@@ -77,11 +77,6 @@ class Oauth2
 			}
 
 			$this->getToken($queryParams['code']);
-		} elseif (isset($queryParams['access_token']) && isset($queryParams['id_token'])) {
-			$this->session->reGenerateId();
-			$this->session->set('user', $queryParams['id_token']);
-
-			header('Location: '.$this->redirectBaseUrl);
 		} elseif (isset($queryParams['error'])) {
 			throw new Error($queryParams['error']);
 		} else {
@@ -115,6 +110,21 @@ class Oauth2
 
 		$response = curl_exec($curl);
 
-		curl_close($curl);
+		if ($response === false) {
+			$error = curl_error($curl);
+			curl_close($curl);
+			throw new Error('curl_error:'.$error);
+		}
+
+		if (isset($response['access_token']) && isset($response['id_token'])) {
+			$this->session->reGenerateId();
+			$this->session->set('user', $response['id_token']);
+			header('Location: '.$this->redirectBaseUrl);
+		}
+	}
+
+	private function generateState()
+	{
+		return md5(uniqid(mt_rand(), true));
 	}
 }
