@@ -83,8 +83,7 @@ class Oauth2
 
 		$url = $this->endpointBaseUrl . '/authorize?' . http_build_query($queryParams);
 
-		$response->withRedirect($url);
-		exit();
+		return $response->withRedirect($url);
 	}
 
 	public function callback(Request $request, Response $response)
@@ -97,7 +96,7 @@ class Oauth2
 				throw new Oauth2Error('invalid_state');
 			}
 
-			$this->getToken($queryParams['code'], $response);
+			return $this->getToken($queryParams['code'], $response);
 		} elseif (isset($queryParams['error'])) {
 			throw new Oauth2Error($queryParams['error']);
 		} else {
@@ -132,8 +131,7 @@ class Oauth2
 		if (isset($token['access_token']) && isset($token['id_token'])) {
 			$this->session->reGenerateId();
 			$this->session->set('user', $token['id_token']);
-			$response->withRedirect(self::APP_URL);
-			exit();
+			return $response->withRedirect(self::APP_URL);
 		} elseif (isset($token['error'])) {
 			throw new Oauth2Error($token['error']);
 		} else {

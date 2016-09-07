@@ -37,18 +37,17 @@ $app->get('/', function (Request $request, Response $response) use ($session) {
 });
 
 $app->get('/authorize', function (Request $request, Response $response) {
-	Oauth2::create()->authorize($response);
+	return Oauth2::create()->authorize($response);
 })->setName('authorize');
 
 $app->get('/callback', function (Request $request, Response $response) {
 	try {
-		Oauth2::create()->callback($request, $response);
+		return Oauth2::create()->callback($request, $response);
 	} catch (\Exception $e) {
-		$response->withRedirect(
+		return $response->withRedirect(
 			Oauth2::APP_URL . '?' . http_build_query(['error' => $e->getMessage()]),
 			401
 		);
-		exit;
 	}
 });
 
