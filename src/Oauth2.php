@@ -5,6 +5,7 @@ namespace App;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use GuzzleHttp\Client as HttpClient;
+use Lcobucci\JWT\Parser as JwtParser;
 
 class Oauth2
 {
@@ -40,13 +41,19 @@ class Oauth2
 	 */
 	private $httpClient;
 
+	/**
+	 * @var JwtParser
+	 */
+	private $jwtParser;
+
 	public function __construct(
 		$endpointBaseUrl,
 		$clientId,
 		$clientSecret,
 		$state,
 		$session,
-		$httpClient
+		$httpClient,
+		$jwtParser
 	)
 	{
 		$this->endpointBaseUrl = $endpointBaseUrl;
@@ -55,6 +62,7 @@ class Oauth2
 		$this->state           = $state;
 		$this->session         = $session;
 		$this->httpClient      = $httpClient;
+		$this->jwtParser       = $jwtParser;
 	}
 
 	public static function create()
@@ -65,7 +73,8 @@ class Oauth2
 			getenv('IBMID_CLIENT_SECRET'),
 			self::generateState(),
 			new Session(),
-			new HttpClient()
+			new HttpClient(),
+			new JwtParser()
 		);
 	}
 
@@ -129,8 +138,10 @@ class Oauth2
 		$token = \GuzzleHttp\json_decode($tokenResponse->getBody(), true);
 
 		if (isset($token['access_token']) && isset($token['id_token'])) {
+			$idToken = $this->jwtParser->parse((string) $token['id_token']);
+
 			$this->session->reGenerateId();
-			$this->session->set('user', $token['id_token']);
+			$this->session->set('user', $idToken->getClaim('preferred_username'));
 			return $response->withRedirect(self::APP_URL);
 		} elseif (isset($token['error'])) {
 			throw new Oauth2Error($token['error']);
