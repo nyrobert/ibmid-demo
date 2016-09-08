@@ -55,5 +55,4 @@ $app->get('/logout', function (Request $request, Response $response) use ($sessi
 	return $response->withRedirect(Oauth2::APP_URL);
 })->setName('logout');
 
-
 return $app;

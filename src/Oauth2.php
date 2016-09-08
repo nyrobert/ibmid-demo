@@ -54,8 +54,7 @@ class Oauth2
 		$session,
 		$httpClient,
 		$jwtParser
-	)
-	{
+	) {
 		$this->endpointBaseUrl = $endpointBaseUrl;
 		$this->clientId        = $clientId;
 		$this->clientSecret    = $clientSecret;
@@ -115,13 +114,12 @@ class Oauth2
 
 	private function getToken($code, Response $response)
 	{
-		$credentials = base64_encode($this->clientId . ':' . $this->clientSecret);
-
 		$tokenResponse = $this->httpClient->post(
-			$this->endpointBaseUrl . '/token', [
+			$this->endpointBaseUrl . '/token',
+			[
 				'headers' => [
 					'Content-Type'  => 'application/x-www-form-urlencoded',
-					'Authorization' => 'Basic ' . $credentials,
+					'Authorization' => 'Basic ' . $this->getEncodedCredentials(),
 					'Accept'        => 'application/json',
 				],
 				'form_params' => [
@@ -138,10 +136,8 @@ class Oauth2
 		$token = \GuzzleHttp\json_decode($tokenResponse->getBody(), true);
 
 		if (isset($token['access_token']) && isset($token['id_token'])) {
-			$idToken = $this->jwtParser->parse((string) $token['id_token']);
-
 			$this->session->reGenerateId();
-			$this->session->set('user', $idToken->getClaim('preferred_username'));
+			$this->session->set('user', $this->getEmailClaim((string) $token['id_token']));
 			return $response->withRedirect(self::APP_URL);
 		} elseif (isset($token['error'])) {
 			throw new Oauth2Error($token['error']);
@@ -153,5 +149,15 @@ class Oauth2
 	private static function generateState()
 	{
 		return md5(uniqid(mt_rand(), true));
+	}
+
+	private function getEncodedCredentials()
+	{
+		return base64_encode($this->clientId . ':' . $this->clientSecret);
+	}
+
+	private function getEmailClaim($idToken)
+	{
+		return $this->jwtParser->parse($idToken)->getClaim('preferred_username');
 	}
 }
