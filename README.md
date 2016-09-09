@@ -11,13 +11,15 @@
   ```shell
   composer install
   ```
-2. Set required environment variables:
+2. Register your application
+
+3. Set required environment variables:
 
   * `IBMID_ENDPOINT_BASE_URL`
   * `IBMID_CLIENT_ID`
   * `IBMID_CLIENT_SECRET`
 
-3. Set `APP_URL` in `\App\Oauth2` class
+4. Set `APP_URL` in `\App\Oauth2` class
 
 ## License
 
