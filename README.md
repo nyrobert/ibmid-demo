@@ -11,7 +11,7 @@
   ```shell
   composer install
   ```
-2. Register your application
+2. Register your application with the IBM Identity Service
 
 3. Set required environment variables:
 
