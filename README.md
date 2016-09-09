@@ -11,11 +11,13 @@
   ```shell
   composer install
   ```
+2. Set required environment variables:
 
-## Features
+  * `IBMID_ENDPOINT_BASE_URL`
+  * `IBMID_CLIENT_ID`
+  * `IBMID_CLIENT_SECRET`
 
-This demo app was built for testing the IBMid (Single Sign On authentication service for Bluemix)
-registration flow.
+3. Set `APP_URL` in `\App\Oauth2` class
 
 ## License
 
