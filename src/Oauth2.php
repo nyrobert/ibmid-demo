@@ -158,6 +158,6 @@ class Oauth2
 
 	private function getEmailClaim($idToken)
 	{
-		return $this->jwtParser->parse($idToken)->getClaim('preferred_username');
+		return $this->jwtParser->parse($idToken)->getClaim('email');
 	}
 }
