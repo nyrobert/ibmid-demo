@@ -143,6 +143,8 @@ class Oauth2
 					'email' => $this->getEmailClaim((string) $token['id_token'])
 				]
 			);
+			var_dump($this->jwtParser->parse((string) $token['id_token'])->getClaims());
+			exit();
 			return $response->withRedirect(self::APP_URL);
 		} elseif (isset($token['error'])) {
 			throw new Oauth2Error($token['error']);
