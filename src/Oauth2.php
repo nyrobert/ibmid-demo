@@ -9,8 +9,6 @@ use Lcobucci\JWT\Parser as JwtParser;
 
 class Oauth2
 {
-	const APP_URL = 'https://peaceful-wildwood-33778.herokuapp.com';
-
 	/**
 	 * @var string
 	 */
@@ -84,7 +82,7 @@ class Oauth2
 		$queryParams = [
 			'response_type' => 'code',
 			'client_id'     => $this->clientId,
-			'redirect_uri'  => self::APP_URL . '/callback',
+			'redirect_uri'  => self::getAppUrl() . '/callback',
 			'scope'         => 'openid',
 			'state'         => $this->session->get('state'),
 		];
@@ -126,7 +124,7 @@ class Oauth2
 					'grant_type'   => 'authorization_code',
 					'code'         => $code,
 					'client_id'    => $this->clientId,
-					'redirect_uri' => self::APP_URL . '/callback',
+					'redirect_uri' => self::getAppUrl() . '/callback',
 					'scope'        => 'openid',
 				],
 				'verify' => true,
@@ -144,17 +142,12 @@ class Oauth2
 					'email' => $this->getEmailClaim((string) $token['id_token'])
 				]
 			);
-			return $response->withRedirect(self::APP_URL);
+			return $response->withRedirect(self::getAppUrl());
 		} elseif (isset($token['error'])) {
 			throw new Oauth2Error($token['error']);
 		} else {
 			throw new Oauth2Error('unknown_error');
 		}
-	}
-
-	private static function generateState()
-	{
-		return md5(uniqid(mt_rand(), true));
 	}
 
 	private function getEncodedCredentials()
@@ -170,5 +163,15 @@ class Oauth2
 	private function getEmailClaim($idToken)
 	{
 		return $this->jwtParser->parse($idToken)->getClaim('email');
+	}
+
+	private static function generateState()
+	{
+		return md5(uniqid(mt_rand(), true));
+	}
+
+	public static function getAppUrl()
+	{
+		return getenv('IBMID_APP_URL');
 	}
 }

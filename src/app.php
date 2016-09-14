@@ -44,7 +44,7 @@ $app->get('/callback', function (Request $request, Response $response) {
 		return Oauth2::create()->callback($request, $response);
 	} catch (\Exception $e) {
 		return $response->withRedirect(
-			Oauth2::APP_URL . '?' . http_build_query(['error' => $e->getMessage()]),
+			Oauth2::getAppUrl() . '?' . http_build_query(['error' => $e->getMessage()]),
 			401
 		);
 	}
@@ -52,7 +52,7 @@ $app->get('/callback', function (Request $request, Response $response) {
 
 $app->get('/logout', function (Request $request, Response $response) use ($session) {
 	$session->destroy();
-	return $response->withRedirect(Oauth2::APP_URL);
+	return $response->withRedirect(Oauth2::getAppUrl());
 })->setName('logout');
 
 return $app;

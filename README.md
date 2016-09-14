@@ -18,8 +18,7 @@
   * `IBMID_ENDPOINT_BASE_URL`
   * `IBMID_CLIENT_ID`
   * `IBMID_CLIENT_SECRET`
-
-4. Set `APP_URL` in `\App\Oauth2` class
+  * `IBMID_APP_URL`
 
 ## License
 
