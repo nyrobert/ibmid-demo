@@ -9,7 +9,7 @@
 
 	<p>
 		{% if user %}
-			<strong>{{ user }}</strong> logged in. <a href="{{ path_for('logout') }}">Log out</a>
+			<strong>{{ user.email }} ({{ user.id }})</strong> logged in. <a href="{{ path_for('logout') }}">Log out</a>
 		{% else %}
 			<a href="{{ path_for('authorize') }}">Login with IBMid</a>
 		{% endif %}

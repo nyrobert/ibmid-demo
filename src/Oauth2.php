@@ -137,7 +137,12 @@ class Oauth2
 
 		if (isset($token['access_token']) && isset($token['id_token'])) {
 			$this->session->reGenerateId();
-			$this->session->set('user', $this->getEmailClaim((string) $token['id_token']));
+			$this->session->set(
+				'user', [
+					'id'    => $this->getIdClaim((string) $token['id_token']),
+					'email' => $this->getEmailClaim((string) $token['id_token'])
+				]
+			);
 			return $response->withRedirect(self::APP_URL);
 		} elseif (isset($token['error'])) {
 			throw new Oauth2Error($token['error']);
@@ -159,5 +164,10 @@ class Oauth2
 	private function getEmailClaim($idToken)
 	{
 		return $this->jwtParser->parse($idToken)->getClaim('email');
+	}
+
+	private function getIdClaim($idToken)
+	{
+		return $this->jwtParser->parse($idToken)->getClaim('sub');
 	}
 }
