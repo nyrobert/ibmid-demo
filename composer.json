@@ -10,5 +10,8 @@
 		"slim/twig-view": "^2.1",
 		"guzzlehttp/guzzle": "^6.2",
 		"lcobucci/jwt": "^3.2"
+	},
+	"require-dev": {
+		"codeception/codeception": "^2.2"
 	}
 }
