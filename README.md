@@ -19,6 +19,14 @@
   * `IBMID_CLIENT_ID`
   * `IBMID_CLIENT_SECRET`
 
+## Testing
+
+Run Codeception from the command line:
+
+ ```shell
+  php vendor/bin/codecept run
+  ```
+
 ## License
 
 This project is licensed under the terms of the [MIT License (MIT)](LICENSE).
