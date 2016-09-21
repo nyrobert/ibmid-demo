@@ -1,21 +1,33 @@
 <?php
 
 use App\Oauth2;
-use Codeception\Util\Stub;
 
 class LoginTest extends \Codeception\Test\Unit
 {
-	const IBMID_ENDPOINT_BASE_URL = 'http://app.com';
+	const IBMID_ENDPOINT_BASE_URL = 'https://auth.ibmid.com';
 	const IBMID_CLIENT_ID         = 'abcdefgh';
 	const IBMID_CLIENT_SECRET     = '123456789';
 	const STATE                   = 'abc123';
+	const BASE_URL                = 'https://app.com';
 
 	/**
 	 * @var Oauth2
 	 */
 	private $object;
+
+	/**
+	 * @var PHPUnit_Framework_MockObject_MockObject
+	 */
 	private $session;
+
+	/**
+	 * @var PHPUnit_Framework_MockObject_MockObject
+	 */
 	private $httpClient;
+
+	/**
+	 * @var PHPUnit_Framework_MockObject_MockObject
+	 */
 	private $jwtParser;
 
 	/**
@@ -25,9 +37,9 @@ class LoginTest extends \Codeception\Test\Unit
 
 	protected function _before()
 	{
-		$this->session    = Stub::make('\App\Session');
-		$this->httpClient = Stub::make('\GuzzleHttp\Client');
-		$this->jwtParser  = Stub::make('\Lcobucci\JWT\Parser');
+		$this->session    = $this->getMockBuilder('\App\Session')->getMock();
+		$this->httpClient = $this->getMockBuilder('\GuzzleHttp\Client')->getMock();
+		$this->jwtParser  = $this->getMockBuilder('\Lcobucci\JWT\Parser')->getMock();
 
 		$this->object = new Oauth2(
 			self::IBMID_ENDPOINT_BASE_URL,
@@ -42,10 +54,27 @@ class LoginTest extends \Codeception\Test\Unit
 
 	public function testAuthorize()
 	{
-		$response = Stub::make('\Slim\Http\Response');
+		$this->session
+			->expects($this->once())->method('set');
+		$this->session
+			->expects($this->once())->method('get')
+			->will($this->returnValue(self::STATE));
 
-		$response->
+		$queryParams = [
+			'response_type' => 'code',
+			'client_id'     => self::IBMID_CLIENT_ID,
+			'redirect_uri'  => self::BASE_URL . '/callback',
+			'scope'         => 'openid',
+			'state'         => self::STATE,
+		];
 
-		$this->object->authorize($response);
+		$url = self::IBMID_ENDPOINT_BASE_URL . '/authorize?' . http_build_query($queryParams);
+
+		$response = $this->getMockBuilder('\Slim\Http\Response')->getMock();
+		$response
+			->expects($this->once())->method('withRedirect')
+			->with($url);
+
+		$this->object->authorize(self::BASE_URL, $response);
 	}
 }

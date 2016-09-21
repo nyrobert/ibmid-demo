@@ -36,7 +36,7 @@ $app->get('/', function (Request $request, Response $response) use ($session) {
 });
 
 $app->get('/authorize', function (Request $request, Response $response) {
-	return Oauth2::create()->authorize($response);
+	return Oauth2::create()->authorize($request->getUri()->getBaseUrl(), $response);
 })->setName('authorize');
 
 $app->get('/callback', function (Request $request, Response $response) {
@@ -44,7 +44,7 @@ $app->get('/callback', function (Request $request, Response $response) {
 		return Oauth2::create()->callback($request, $response);
 	} catch (\Exception $e) {
 		return $response->withRedirect(
-			Oauth2::getAppUrl() . '?' . http_build_query(['error' => $e->getMessage()]),
+			$request->getUri()->getBaseUrl() . '?' . http_build_query(['error' => $e->getMessage()]),
 			401
 		);
 	}
@@ -52,7 +52,7 @@ $app->get('/callback', function (Request $request, Response $response) {
 
 $app->get('/logout', function (Request $request, Response $response) use ($session) {
 	$session->destroy();
-	return $response->withRedirect(Oauth2::getAppUrl());
+	return $response->withRedirect($request->getUri()->getBaseUrl());
 })->setName('logout');
 
 return $app;

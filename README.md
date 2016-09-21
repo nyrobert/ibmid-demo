@@ -18,7 +18,6 @@
   * `IBMID_ENDPOINT_BASE_URL`
   * `IBMID_CLIENT_ID`
   * `IBMID_CLIENT_SECRET`
-  * `IBMID_APP_URL`
 
 ## License
 

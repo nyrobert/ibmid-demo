@@ -75,14 +75,14 @@ class Oauth2
 		);
 	}
 
-	public function authorize(Response $response)
+	public function authorize($baseUrl, Response $response)
 	{
 		$this->session->set('state', $this->state);
 
 		$queryParams = [
 			'response_type' => 'code',
 			'client_id'     => $this->clientId,
-			'redirect_uri'  => self::getAppUrl() . '/callback',
+			'redirect_uri'  => $baseUrl . '/callback',
 			'scope'         => 'openid',
 			'state'         => $this->session->get('state'),
 		];
@@ -102,7 +102,7 @@ class Oauth2
 				throw new Oauth2Error('invalid_state');
 			}
 
-			return $this->getToken($queryParams['code'], $response);
+			return $this->getToken($queryParams['code'], $request->getUri()->getBaseUrl(), $response);
 		} elseif (isset($queryParams['error'])) {
 			throw new Oauth2Error($queryParams['error']);
 		} else {
@@ -110,7 +110,7 @@ class Oauth2
 		}
 	}
 
-	private function getToken($code, Response $response)
+	private function getToken($code, $baseUrl, Response $response)
 	{
 		$tokenResponse = $this->httpClient->post(
 			$this->endpointBaseUrl . '/token',
@@ -124,7 +124,7 @@ class Oauth2
 					'grant_type'   => 'authorization_code',
 					'code'         => $code,
 					'client_id'    => $this->clientId,
-					'redirect_uri' => self::getAppUrl() . '/callback',
+					'redirect_uri' => $baseUrl . '/callback',
 					'scope'        => 'openid',
 				],
 				'verify' => true,
@@ -142,7 +142,7 @@ class Oauth2
 					'email' => $this->getEmailClaim((string) $token['id_token'])
 				]
 			);
-			return $response->withRedirect(self::getAppUrl());
+			return $response->withRedirect($baseUrl);
 		} elseif (isset($token['error'])) {
 			throw new Oauth2Error($token['error']);
 		} else {
@@ -168,10 +168,5 @@ class Oauth2
 	private static function generateState()
 	{
 		return md5(uniqid(mt_rand(), true));
-	}
-
-	public static function getAppUrl()
-	{
-		return getenv('IBMID_APP_URL');
 	}
 }
