@@ -102,4 +102,32 @@ class Oauth2Test extends \Codeception\Test\Unit
 
 		$this->object->authorize($this->request, $this->response);
 	}
+
+	public function testCallbackWithError()
+	{
+		$error = 'invalid_request';
+
+		$this->request
+			->expects($this->once())->method('getQueryParams')
+			->will($this->returnValue(['error' => $error]));
+
+		$this->expectException('\App\Oauth2Error');
+		$this->expectExceptionMessage($error);
+
+		$this->object->callback($this->request, $this->response);
+	}
+
+	public function testCallbackWithUnknownError()
+	{
+		$error = 'unknown_error';
+
+		$this->request
+			->expects($this->once())->method('getQueryParams')
+			->will($this->returnValue([]));
+
+		$this->expectException('\App\Oauth2Error');
+		$this->expectExceptionMessage($error);
+
+		$this->object->callback($this->request, $this->response);
+	}
 }
