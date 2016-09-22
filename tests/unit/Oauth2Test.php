@@ -9,7 +9,9 @@ class Oauth2Test extends \Codeception\Test\Unit
 	const IBMID_CLIENT_SECRET     = '123456789';
 	const STATE                   = 'abc123';
 	const BASE_URL                = 'https://app.com';
-	const OAUTH2_CODE             = 123;
+	const OAUTH2_CODE             = '123';
+	const OAUTH2_ACCESS_TOKEN     = 'abcdefgh12345';
+	const OAUTH2_ID_TOKEN         = 'ijklmnop12345';
 
 	/**
 	 * @var Oauth2
@@ -24,12 +26,12 @@ class Oauth2Test extends \Codeception\Test\Unit
 	/**
 	 * @var PHPUnit_Framework_MockObject_MockObject
 	 */
-	private $httpClient;
+	private $jwtParser;
 
 	/**
 	 * @var PHPUnit_Framework_MockObject_MockObject
 	 */
-	private $jwtParser;
+	private $jwtToken;
 
 	/**
 	 * @var PHPUnit_Framework_MockObject_MockObject
@@ -39,12 +41,12 @@ class Oauth2Test extends \Codeception\Test\Unit
 	/**
 	 * @var PHPUnit_Framework_MockObject_MockObject
 	 */
-	private $uri;
+	private $response;
 
 	/**
 	 * @var PHPUnit_Framework_MockObject_MockObject
 	 */
-	private $response;
+	private $httpClient;
 
 	/**
 	 * @var \UnitTester
@@ -54,11 +56,14 @@ class Oauth2Test extends \Codeception\Test\Unit
 	protected function _before()
 	{
 		$this->session    = $this->createMock('\App\Session');
-		$this->httpClient = $this->createMock('\GuzzleHttp\Client');
 		$this->jwtParser  = $this->createMock('\Lcobucci\JWT\Parser');
+		$this->jwtToken   = $this->createMock('\Lcobucci\JWT\Token');
 		$this->request    = $this->createMock('\Slim\Http\Request');
-		$this->uri        = $this->createMock('\Slim\Http\Uri');
 		$this->response   = $this->createMock('\Slim\Http\Response');
+		$this->httpClient = $this->getMockBuilder('\GuzzleHttp\Client')
+			->setMethods(['post'])
+			->disableOriginalConstructor()
+			->getMock();
 
 		$this->object = new Oauth2(
 			self::IBMID_ENDPOINT_BASE_URL,
@@ -81,19 +86,53 @@ class Oauth2Test extends \Codeception\Test\Unit
 			->expects($this->once())->method('get')
 			->will($this->returnValue(self::STATE));
 
-		$this->uri
-			->expects($this->once())->method('getBaseUrl')
-			->will($this->returnValue(self::BASE_URL));
-
-		$this->request
-			->expects($this->once())->method('getUri')
-			->will($this->returnValue($this->uri));
+		$this->expectsRequestGetBaseUrlMethodCalled();
 
 		$this->response
 			->expects($this->once())->method('withRedirect')
 			->with($url);
 
 		$this->object->authorize($this->request, $this->response);
+	}
+
+	public function testCallbackWithTokenRequest()
+	{
+		$userData = [
+			'id'    => 1,
+			'email' => 'user@app.com',
+		];
+
+		$tokenResponse = [
+			'access_token' => self::OAUTH2_ACCESS_TOKEN,
+			'id_token'     => self::OAUTH2_ID_TOKEN,
+		];
+
+		$this->request
+			->expects($this->once())->method('getQueryParams')
+			->will($this->returnValue(['code' => self::OAUTH2_CODE, 'state' => self::STATE]));
+
+		$this->session
+			->expects($this->once())->method('get')
+			->will($this->returnValue(self::STATE));
+
+		$this->expectsRequestGetBaseUrlMethodCalled();
+
+		$this->expectsHttpClientGetBodyMethodCalled(json_encode($tokenResponse));
+
+		$this->expectsJwtParserGetClaimMethodCalled(0, $userData['id']);
+		$this->expectsJwtParserGetClaimMethodCalled(1, $userData['email']);
+
+		$this->session
+			->expects($this->once())->method('reGenerateId');
+		$this->session
+			->expects($this->once())->method('set')
+			->with('user', $userData);
+
+		$this->response
+			->expects($this->once())->method('withRedirect')
+			->with(self::BASE_URL);
+
+		$this->object->callback($this->request, $this->response);
 	}
 
 	public function testCallbackWithStateError()
@@ -142,6 +181,41 @@ class Oauth2Test extends \Codeception\Test\Unit
 		$this->expectExceptionMessage($error);
 
 		$this->object->callback($this->request, $this->response);
+	}
+
+	private function expectsRequestGetBaseUrlMethodCalled()
+	{
+		$uri = $this->createMock('\Slim\Http\Uri');
+		$uri
+			->expects($this->any())->method('getBaseUrl')
+			->will($this->returnValue(self::BASE_URL));
+
+		$this->request
+			->expects($this->any())->method('getUri')
+			->will($this->returnValue($uri));
+	}
+
+	private function expectsHttpClientGetBodyMethodCalled($body)
+	{
+		$httpMessage = $this->createMock('\Psr\Http\Message\MessageInterface');
+		$httpMessage
+			->expects($this->once())->method('getBody')
+			->will($this->returnValue($body));
+
+		$this->httpClient
+			->expects($this->once())->method('post')
+			->will($this->returnValue($httpMessage));
+	}
+
+	private function expectsJwtParserGetClaimMethodCalled($at, $value)
+	{
+		$this->jwtToken
+			->expects($this->at($at))->method('getClaim')
+			->will($this->returnValue($value));
+
+		$this->jwtParser
+			->expects($this->at($at))->method('parse')
+			->will($this->returnValue($this->jwtToken));
 	}
 
 	private function getQueryParamsForAuthorize()
