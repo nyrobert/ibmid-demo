@@ -9,6 +9,7 @@ class Oauth2Test extends \Codeception\Test\Unit
 	const IBMID_CLIENT_SECRET     = '123456789';
 	const STATE                   = 'abc123';
 	const BASE_URL                = 'https://app.com';
+	const OAUTH2_CODE             = 123;
 
 	/**
 	 * @var Oauth2
@@ -95,7 +96,27 @@ class Oauth2Test extends \Codeception\Test\Unit
 		$this->object->authorize($this->request, $this->response);
 	}
 
-	public function testCallbackWithError()
+	public function testCallbackWithStateError()
+	{
+		$error = 'invalid_state';
+
+		$this->request
+			->expects($this->once())->method('getQueryParams')
+			->will($this->returnValue(['code' => self::OAUTH2_CODE, 'state' => 'efg123']));
+
+		$this->session
+			->expects($this->once())->method('get')
+			->will($this->returnValue(self::STATE));
+		$this->session
+			->expects($this->once())->method('remove');
+
+		$this->expectException('\App\Oauth2Error');
+		$this->expectExceptionMessage($error);
+
+		$this->object->callback($this->request, $this->response);
+	}
+
+	public function testCallbackWithOauth2Error()
 	{
 		$error = 'invalid_request';
 
