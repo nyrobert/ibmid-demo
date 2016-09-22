@@ -72,21 +72,13 @@ class Oauth2Test extends \Codeception\Test\Unit
 
 	public function testAuthorize()
 	{
+		$url = self::IBMID_ENDPOINT_BASE_URL . '/authorize?' . http_build_query($this->getQueryParamsForAuthorize());
+
 		$this->session
 			->expects($this->once())->method('set');
 		$this->session
 			->expects($this->once())->method('get')
 			->will($this->returnValue(self::STATE));
-
-		$queryParams = [
-			'response_type' => 'code',
-			'client_id'     => self::IBMID_CLIENT_ID,
-			'redirect_uri'  => self::BASE_URL . '/callback',
-			'scope'         => 'openid',
-			'state'         => self::STATE,
-		];
-
-		$url = self::IBMID_ENDPOINT_BASE_URL . '/authorize?' . http_build_query($queryParams);
 
 		$this->uri
 			->expects($this->once())->method('getBaseUrl')
@@ -129,5 +121,16 @@ class Oauth2Test extends \Codeception\Test\Unit
 		$this->expectExceptionMessage($error);
 
 		$this->object->callback($this->request, $this->response);
+	}
+
+	private function getQueryParamsForAuthorize()
+	{
+		return [
+			'response_type' => 'code',
+			'client_id'     => self::IBMID_CLIENT_ID,
+			'redirect_uri'  => self::BASE_URL . '/callback',
+			'scope'         => 'openid',
+			'state'         => self::STATE,
+		];
 	}
 }
