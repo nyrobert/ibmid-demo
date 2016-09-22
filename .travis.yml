@@ -8,4 +8,4 @@ before_install:
 install:
   - composer install --no-interaction
 script:
-  - php codecept run
+  - php vendor/bin/codecept run
