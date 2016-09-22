@@ -1,4 +1,4 @@
-# IBMid demo
+# IBMid demo [![Build Status](https://travis-ci.org/nyrobert/ibmid-demo.svg?branch=master)](https://travis-ci.org/nyrobert/ibmid-demo)
 
 ## Requirements
 
