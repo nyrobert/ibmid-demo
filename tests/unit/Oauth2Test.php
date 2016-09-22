@@ -53,12 +53,12 @@ class Oauth2Test extends \Codeception\Test\Unit
 
 	protected function _before()
 	{
-		$this->session    = $this->getMockBuilder('\App\Session')->getMock();
-		$this->httpClient = $this->getMockBuilder('\GuzzleHttp\Client')->getMock();
-		$this->jwtParser  = $this->getMockBuilder('\Lcobucci\JWT\Parser')->getMock();
-		$this->request    = $this->getMockBuilder('\Slim\Http\Request')->disableOriginalConstructor()->getMock();
-		$this->uri        = $this->getMockBuilder('\Slim\Http\Uri')->disableOriginalConstructor()->getMock();
-		$this->response   = $this->getMockBuilder('\Slim\Http\Response')->getMock();
+		$this->session    = $this->createMock('\App\Session');
+		$this->httpClient = $this->createMock('\GuzzleHttp\Client');
+		$this->jwtParser  = $this->createMock('\Lcobucci\JWT\Parser');
+		$this->request    = $this->createMock('\Slim\Http\Request');
+		$this->uri        = $this->createMock('\Slim\Http\Uri');
+		$this->response   = $this->createMock('\Slim\Http\Response');
 
 		$this->object = new Oauth2(
 			self::IBMID_ENDPOINT_BASE_URL,
