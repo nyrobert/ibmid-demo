@@ -7,6 +7,9 @@ use Slim\Http\Response;
 use GuzzleHttp\Client as HttpClient;
 use Lcobucci\JWT\Parser as JwtParser;
 
+/**
+ * @see Oauth2Test
+ */
 class Oauth2
 {
 	/**
