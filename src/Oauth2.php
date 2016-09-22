@@ -75,14 +75,14 @@ class Oauth2
 		);
 	}
 
-	public function authorize($baseUrl, Response $response)
+	public function authorize(Request $request, Response $response)
 	{
 		$this->session->set('state', $this->state);
 
 		$queryParams = [
 			'response_type' => 'code',
 			'client_id'     => $this->clientId,
-			'redirect_uri'  => $baseUrl . '/callback',
+			'redirect_uri'  => $request->getUri()->getBaseUrl() . '/callback',
 			'scope'         => 'openid',
 			'state'         => $this->session->get('state'),
 		];
@@ -102,7 +102,7 @@ class Oauth2
 				throw new Oauth2Error('invalid_state');
 			}
 
-			return $this->getToken($queryParams['code'], $request->getUri()->getBaseUrl(), $response);
+			return $this->getToken($queryParams['code'], $request, $response);
 		} elseif (isset($queryParams['error'])) {
 			throw new Oauth2Error($queryParams['error']);
 		} else {
@@ -110,7 +110,7 @@ class Oauth2
 		}
 	}
 
-	private function getToken($code, $baseUrl, Response $response)
+	private function getToken($code, Request $request, Response $response)
 	{
 		$tokenResponse = $this->httpClient->post(
 			$this->endpointBaseUrl . '/token',
@@ -124,7 +124,7 @@ class Oauth2
 					'grant_type'   => 'authorization_code',
 					'code'         => $code,
 					'client_id'    => $this->clientId,
-					'redirect_uri' => $baseUrl . '/callback',
+					'redirect_uri' => $request->getUri()->getBaseUrl() . '/callback',
 					'scope'        => 'openid',
 				],
 				'verify' => true,
@@ -142,7 +142,7 @@ class Oauth2
 					'email' => $this->getEmailClaim((string) $token['id_token'])
 				]
 			);
-			return $response->withRedirect($baseUrl);
+			return $response->withRedirect($request->getUri()->getBaseUrl());
 		} elseif (isset($token['error'])) {
 			throw new Oauth2Error($token['error']);
 		} else {

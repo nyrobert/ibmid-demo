@@ -36,7 +36,7 @@ $app->get('/', function (Request $request, Response $response) use ($session) {
 });
 
 $app->get('/authorize', function (Request $request, Response $response) {
-	return Oauth2::create()->authorize($request->getUri()->getBaseUrl(), $response);
+	return Oauth2::create()->authorize($request, $response);
 })->setName('authorize');
 
 $app->get('/callback', function (Request $request, Response $response) {

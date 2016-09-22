@@ -2,7 +2,7 @@
 
 use App\Oauth2;
 
-class LoginTest extends \Codeception\Test\Unit
+class Oauth2Test extends \Codeception\Test\Unit
 {
 	const IBMID_ENDPOINT_BASE_URL = 'https://auth.ibmid.com';
 	const IBMID_CLIENT_ID         = 'abcdefgh';
@@ -31,6 +31,21 @@ class LoginTest extends \Codeception\Test\Unit
 	private $jwtParser;
 
 	/**
+	 * @var PHPUnit_Framework_MockObject_MockObject
+	 */
+	private $request;
+
+	/**
+	 * @var PHPUnit_Framework_MockObject_MockObject
+	 */
+	private $uri;
+
+	/**
+	 * @var PHPUnit_Framework_MockObject_MockObject
+	 */
+	private $response;
+
+	/**
 	 * @var \UnitTester
 	 */
 	protected $tester;
@@ -40,6 +55,9 @@ class LoginTest extends \Codeception\Test\Unit
 		$this->session    = $this->getMockBuilder('\App\Session')->getMock();
 		$this->httpClient = $this->getMockBuilder('\GuzzleHttp\Client')->getMock();
 		$this->jwtParser  = $this->getMockBuilder('\Lcobucci\JWT\Parser')->getMock();
+		$this->request    = $this->getMockBuilder('\Slim\Http\Request')->disableOriginalConstructor()->getMock();
+		$this->uri        = $this->getMockBuilder('\Slim\Http\Uri')->disableOriginalConstructor()->getMock();
+		$this->response   = $this->getMockBuilder('\Slim\Http\Response')->getMock();
 
 		$this->object = new Oauth2(
 			self::IBMID_ENDPOINT_BASE_URL,
@@ -70,11 +88,18 @@ class LoginTest extends \Codeception\Test\Unit
 
 		$url = self::IBMID_ENDPOINT_BASE_URL . '/authorize?' . http_build_query($queryParams);
 
-		$response = $this->getMockBuilder('\Slim\Http\Response')->getMock();
-		$response
+		$this->uri
+			->expects($this->once())->method('getBaseUrl')
+			->will($this->returnValue(self::BASE_URL));
+
+		$this->request
+			->expects($this->once())->method('getUri')
+			->will($this->returnValue($this->uri));
+
+		$this->response
 			->expects($this->once())->method('withRedirect')
 			->with($url);
 
-		$this->object->authorize(self::BASE_URL, $response);
+		$this->object->authorize($this->request, $this->response);
 	}
 }
